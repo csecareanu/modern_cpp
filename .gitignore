@@ -33,3 +33,11 @@
 
 #XCode related
 .DS_Store
+
+#VS related
+*.sln
+*.vcxproj
+*.filters
+*.user
+.vs
+Debug
