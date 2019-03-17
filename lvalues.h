@@ -24,4 +24,9 @@ namespace lvalues_test_class_2
     void run_test();
 }
 
+namespace lvalues_test_class_3
+{
+   void run_test();
+}
+
 #endif /* lvalues_h */

@@ -357,3 +357,8 @@ namespace lvalues_test_class_2
       
    }
 }
+
+namespace lvalues_test_class_3
+{
+   
+}
