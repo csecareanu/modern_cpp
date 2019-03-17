@@ -397,10 +397,8 @@ namespace lvalues_test_class_4
       CLS_DESTR;
       
       CLS_COPY_CONSTR;
-      CLS_COPY_ASSIG;
       
       CLS_MOVE_CONSTR;
-      CLS_MOVE_ASSIG;
    };
    
 #undef CLS
@@ -411,12 +409,10 @@ namespace lvalues_test_class_4
       CLS_CONSTR;
       CLS_DESTR;
       
-      CLS_COPY_CONSTR;
-      CLS_COPY_ASSIG;
+      CLS(CLS& inst) : Base(inst) { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
       
       // wrong implementataion: the base class should be called
       CLS_MOVE_CONSTR;
-      
    };
    
 #undef CLS
@@ -427,12 +423,10 @@ namespace lvalues_test_class_4
       CLS_CONSTR;
       CLS_DESTR;
       
-      CLS_COPY_CONSTR;
-      CLS_COPY_ASSIG;
+      CLS(CLS& inst) : Base(inst) { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
       
       // !!! wrong call of base class: inst is an lvalue
       CLS(CLS&& inst) : Base(inst) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
-      
    };
    
 #undef CLS
@@ -443,12 +437,10 @@ namespace lvalues_test_class_4
       CLS_CONSTR;
       CLS_DESTR;
       
-      CLS_COPY_CONSTR;
-      CLS_COPY_ASSIG;
+      CLS(CLS& inst) : Base(inst) { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
       
       // good, calls Base(Base&& inst)
       CLS(CLS&& inst) : Base(std::move(inst)) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
-      
    };
 
    void run_test()
