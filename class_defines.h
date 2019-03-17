@@ -44,12 +44,12 @@ std::cout << "CALL COPY CONSTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
 CLS(CLS&&) { \
 std::cout << "CALL MOVE CONSTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
 
-#define CLS_OP_COPY_ASSIG(CLS) \
+#define CLS_COPY_ASSIG(CLS) \
 CLS& operator = (const CLS&) { \
 std::cout << "CALL COPY ASSIG OP : " << STR_CLS_DETAILS(CLS) << "\n"; \
 return *this; }
 
-#define CLS_OP_MOVE_ASSIG(CLS) \
+#define CLS_MOVE_ASSIG(CLS) \
 CLS& operator = (CLS&&) { \
 std::cout << "CALL MOVE ASSIG OP: " << STR_CLS_DETAILS(CLS) << "\n"; \
 return *this; }

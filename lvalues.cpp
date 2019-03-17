@@ -20,6 +20,14 @@
  Rvalue references allow a function to branch at compile time (via overload resolution) on the condition "Am I being called on an lvalue or an rvalue?"
  According to the final version of C++11, foo(X&&) can be called on r-values,
  but trying to call it on an l-value will trigger a compile error.
+ 
+ Things that are declared as rvalue reference can be lvalues or rvalues.
+ The distinguishing criterion is: if it has a name (is still in scope!), then it is an lvalue.
+ Otherwise, it is an rvalue.
+ So a Rvalue Reference function parameter is an Lvalue.
+ But: X&& goo();
+      X x = goo(); // calls X(X&& rhs) because the thing on
+                  // the right hand side has no name
  */
 
 
@@ -121,10 +129,44 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
       CLS_CONSTR(CLS);
       CLS_DESTR(CLS);
       CLS_MOVE_CONSTR(CLS);
-      CLS_OP_MOVE_ASSIG(CLS);
+      CLS_MOVE_ASSIG(CLS);
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
+
+#undef CLS
+#define CLS Wd_constr_destr_copy_copyassg_move_moveassg
+class CLS
+{
+public:
+   CLS_CONSTR(CLS);
+   CLS_DESTR(CLS);
+   
+   CLS_COPY_CONSTR(CLS);
+   CLS_COPY_ASSIG(CLS);
+   
+   CLS_MOVE_CONSTR(CLS);
+   CLS_MOVE_ASSIG(CLS);
+};
+TEST_RVAL(CLS);
+TEST_LVAL(CLS);
+
+#undef CLS
+#define CLS Wd_constr_destr_copy_copyassg_move
+class CLS
+{
+public:
+   CLS_CONSTR(CLS);
+   CLS_DESTR(CLS);
+   
+   CLS_COPY_CONSTR(CLS);
+   CLS_COPY_ASSIG(CLS);
+   
+   CLS_MOVE_CONSTR(CLS);
+};
+TEST_RVAL(CLS);
+TEST_LVAL(CLS);
+   
 }
 
 namespace lvalues_test_class
@@ -197,8 +239,8 @@ namespace lvalues_test_class
          // out: CALL CONSTRUCTOR: Wd_constr_destr_move_moveassg_0x7ffeefbff2e8
          Wd_constr_destr_del_move_moveassg&& m2 = Wd_constr_destr_del_move_moveassg();
          // out: CALL CONSTRUCTOR: Wd_constr_destr_del_move_moveassg_0x7ffeefbff2d8
-         (void)(&m1);
-         (void)(&m2);
+         std::ignore = m1;
+         std::ignore = m2;
       }
       /*
       out: CALL DESTRUCTOR: Wd_constr_destr_del_move_moveassg_0x7ffeefbff2d8
@@ -210,16 +252,108 @@ namespace lvalues_test_class
 namespace lvalues_test_class_2
 {
    using namespace class_defines;
+   
+   /*
+    swap_old can be used to achieve move semantics on rvalues.
+    For this we need to overloaded the copy constructor and copy assignment operator.
+    (it will not compile with deleted copy constructor or assignment operator)
+    */
+   template<typename T>
+   void swap_old(T& a, T& b)
+   {
+      T tmp(a);
+      a = b;
+      b = tmp;
+   }
 
-   template<class T>
+
+   /*
+    Now all three lines in swap use move semantics.
+    Note that for those types that do not implement move semantics
+    (that is, do not overload their copy constructor and assignment operator
+    with an rvalue reference version), the new swap behaves just like the old one.
+    */
+   template<typename T>
    void swap(T& a, T& b)
    {
       T tmp(std::move(a));
       a = std::move(b);
       b = std::move(tmp);
    }
+   
 
    void run_test()
    {
+      {
+         Wd_constr_destr_copy_copyassg_move_moveassg a;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4b0
+         Wd_constr_destr_copy_copyassg_move_moveassg b;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4a8
+         a = b;
+         // out: CALL COPY ASSIG OP : Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4b0
+         a = std::move(b);
+         // CALL MOVE ASSIG OP: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4b0
+      }
+      {
+         Wd_constr_destr_copy_copyassg_move_moveassg a;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff478
+         Wd_constr_destr_copy_copyassg_move_moveassg b(a);
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff470
+         Wd_constr_destr_copy_copyassg_move_moveassg c(std::move(a));
+         // out: CALL MOVE CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff450
+         
+         std::ignore = a;
+         std::ignore = b;
+         std::ignore = c;
+      }
+      
+      /*
+       Nu am declarat move assignment (nici default nici delete).
+       Daca l-as fi declarat delete atunci a = std::move(b); nu ar fi compilat
+       In cazul de fata a = std::move(b); va apela copy constructor-ul
+       */
+      {
+         Wd_constr_destr_copy_copyassg_move a;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move
+         Wd_constr_destr_copy_copyassg_move b;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move
+         a = b;
+         // out: CALL COPY ASSIG OP : Wd_constr_destr_copy_copyassg_move
+         a = std::move(b);
+         // out: CALL COPY ASSIG OP : Wd_constr_destr_copy_copyassg_move_del_moveassg_0x7ffeefbff408
+      }
+      {
+         Wd_constr_destr_copy_copyassg_move a;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move
+         Wd_constr_destr_copy_copyassg_move b(a);
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move
+         Wd_constr_destr_copy_copyassg_move c(std::move(a));
+         // out: CALL MOVE CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move
+         
+         std::ignore = a;
+         std::ignore = b;
+         std::ignore = c;
+      }
+      
+      
+      {
+         Wd_constr_destr_del_move_moveassg a;
+         Wd_constr_destr_del_move_moveassg b;
+         /* compile err: its copy assignment operator is implicitly deleted
+         a = b; */
+         
+         /* compile err: Overload resolution selected deleted operator '='
+         a = std::move(b); */
+         
+         /* compile err: Call to implicitly-deleted copy constructor
+         Wd_constr_destr_del_move_moveassg c(a); */
+         
+         /* compile err: Call to deleted constructor
+         Wd_constr_destr_del_move_moveassg d(std::move(a)); */
+         
+         std::ignore = a;
+         std::ignore = b;
+      }
+      
    }
 }
