@@ -447,6 +447,8 @@ namespace lvalues_test_class_4
    {
       {
          Derived_wr_not_move_base_call d1;
+         // calling copy constructor of d2 instead of move constructor
+         // because d1 is a lvalue type with move semantics
          Derived_wr_not_move_base_call d2(d1);
          // out: CALL CONSTRUCTOR: Base_0x7ffeefbff438
          // out: CALL COPY CONSTRUCTOR: Derived_wr_not_move_base_call_0x7ffeefbff438
@@ -454,6 +456,8 @@ namespace lvalues_test_class_4
       }
       {
          Derived_wr_not_move_base_call d1;
+         // the move constr from derived does not call the move constr from base,
+         // so the compiler will call the constructor
          Derived_wr_not_move_base_call d2(std::move(d1));
          // out: CALL CONSTRUCTOR: Base_0x7ffeefbff3f0
          // out: CALL MOVE CONSTRUCTOR: Derived_wr_not_move_base_call_0x7ffeefbff3f0
@@ -462,8 +466,11 @@ namespace lvalues_test_class_4
       
       {
          Derived_wr_move_base_call d1;
+         // call copy constructor of base because of wrong call of
+         // base copy constructor from the move constructor, in the derived class
+         // CLS(CLS&& inst) : Base(inst)
          Derived_wr_move_base_call d2(std::move(d1));
-         //out: CALL COPY CONSTRUCTOR: Base_0x7ffeefbff3e0
+         // out: CALL COPY CONSTRUCTOR: Base_0x7ffeefbff3e0
          // out: CALL MOVE CONSTRUCTOR: Derived_wr_move_base_call_0x7ffeefbff3e0
          std::ignore = d2;
       }
