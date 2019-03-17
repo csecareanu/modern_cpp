@@ -70,13 +70,13 @@ namespace lvalues_test_int
 
 namespace class_defines
 {
-#define TEST_RVAL(CLS) \
-void test_val(CLS&& wd) { \
-cout << "CALL " << __func__ << "(" << STR(CLS) << "&& wd)\n"; }
+#define TEST_RVAL(TYPE) \
+void test_val(TYPE&& wd) { \
+cout << "CALL " << __func__ << "(" << STR(TYPE) << "&& wd)\n"; }
     
-#define TEST_LVAL(CLS) \
-void test_val(CLS& wd) { \
-cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
+#define TEST_LVAL(TYPE) \
+void test_val(TYPE& wd) { \
+cout << "CALL " << __func__ << "(" << STR(TYPE) << "& wd)\n"; }
 
     
    using namespace std;
@@ -87,7 +87,7 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
    class CLS
    {
    public:
-      CLS_CONSTR(CLS);
+      CLS_CONSTR;
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
@@ -97,8 +97,8 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
    class CLS
    {
    public:
-      CLS_CONSTR(CLS);
-      CLS_DESTR(CLS);
+      CLS_CONSTR;
+      CLS_DESTR;
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
@@ -110,10 +110,10 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
    public:
       // there is no default copy constr because there exists deleted move constructor
       // and move assignment operator
-      CLS_CONSTR(CLS);
-      CLS_DESTR(CLS);
-      CLS_MOVE_CONSTR_DEL(CLS);
-      CLS_MOVE_ASSIG_DEL(CLS);
+      CLS_CONSTR;
+      CLS_DESTR;
+      CLS_MOVE_CONSTR_DEL;
+      CLS_MOVE_ASSIG_DEL;
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
@@ -126,10 +126,10 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
    public:
       // there is no default copy constr because there exists move constructor
       // and move assignment operator
-      CLS_CONSTR(CLS);
-      CLS_DESTR(CLS);
-      CLS_MOVE_CONSTR(CLS);
-      CLS_MOVE_ASSIG(CLS);
+      CLS_CONSTR;
+      CLS_DESTR;
+      CLS_MOVE_CONSTR;
+      CLS_MOVE_ASSIG;
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
@@ -139,14 +139,14 @@ cout << "CALL " << __func__ << "(" << STR(CLS) << "& wd)\n"; }
 class CLS
 {
 public:
-   CLS_CONSTR(CLS);
-   CLS_DESTR(CLS);
+   CLS_CONSTR;
+   CLS_DESTR;
    
-   CLS_COPY_CONSTR(CLS);
-   CLS_COPY_ASSIG(CLS);
+   CLS_COPY_CONSTR;
+   CLS_COPY_ASSIG;
    
-   CLS_MOVE_CONSTR(CLS);
-   CLS_MOVE_ASSIG(CLS);
+   CLS_MOVE_CONSTR;
+   CLS_MOVE_ASSIG;
 };
 TEST_RVAL(CLS);
 TEST_LVAL(CLS);
@@ -156,13 +156,13 @@ TEST_LVAL(CLS);
 class CLS
 {
 public:
-   CLS_CONSTR(CLS);
-   CLS_DESTR(CLS);
+   CLS_CONSTR;
+   CLS_DESTR;
    
-   CLS_COPY_CONSTR(CLS);
-   CLS_COPY_ASSIG(CLS);
+   CLS_COPY_CONSTR;
+   CLS_COPY_ASSIG;
    
-   CLS_MOVE_CONSTR(CLS);
+   CLS_MOVE_CONSTR;
 };
 TEST_RVAL(CLS);
 TEST_LVAL(CLS);
@@ -360,5 +360,129 @@ namespace lvalues_test_class_2
 
 namespace lvalues_test_class_3
 {
+   using namespace class_defines;
    
+   Wd_constr_destr_copy_copyassg_move_moveassg&& func(
+      Wd_constr_destr_copy_copyassg_move_moveassg&& o)
+   {
+      return std::move(o);
+   }
+   
+   void run_test()
+   {
+      Wd_constr_destr_copy_copyassg_move_moveassg o;
+      // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4a0
+      
+      Wd_constr_destr_copy_copyassg_move_moveassg o2 = func(std::move(o));
+      // out: CALL MOVE CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff498
+      
+      o2 = func(std::move(o));
+      // out: CALL MOVE ASSIG OP: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff4a0
+      
+      /* compile error: No matching function for call to 'func'
+      o2 = func(o); */
+   }
+   
+   
+}
+
+namespace lvalues_test_class_4
+{
+#undef CLS
+#define CLS Base
+   class CLS
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+      
+      CLS_MOVE_CONSTR;
+      CLS_MOVE_ASSIG;
+   };
+   
+#undef CLS
+#define CLS Derived_wr_not_move_base_call
+   class CLS : public Base
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+      
+      // wrong implementataion: the base class should be called
+      CLS_MOVE_CONSTR;
+      
+   };
+   
+#undef CLS
+#define CLS Derived_wr_move_base_call
+   class CLS : public Base
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+      
+      // !!! wrong call of base class: inst is an lvalue
+      CLS(CLS&& inst) : Base(inst) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
+      
+   };
+   
+#undef CLS
+#define CLS Derived_good_impl
+   class CLS : public Base
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+      
+      // good, calls Base(Base&& inst)
+      CLS(CLS&& inst) : Base(std::move(inst)) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
+      
+   };
+
+   void run_test()
+   {
+      {
+         Derived_wr_not_move_base_call d1;
+         Derived_wr_not_move_base_call d2(d1);
+         // out: CALL CONSTRUCTOR: Base_0x7ffeefbff438
+         // out: CALL COPY CONSTRUCTOR: Derived_wr_not_move_base_call_0x7ffeefbff438
+         std::ignore = d2;
+      }
+      {
+         Derived_wr_not_move_base_call d1;
+         Derived_wr_not_move_base_call d2(std::move(d1));
+         // out: CALL CONSTRUCTOR: Base_0x7ffeefbff3f0
+         // out: CALL MOVE CONSTRUCTOR: Derived_wr_not_move_base_call_0x7ffeefbff3f0
+         std::ignore = d2;
+      }
+      
+      {
+         Derived_wr_move_base_call d1;
+         Derived_wr_move_base_call d2(std::move(d1));
+         //out: CALL COPY CONSTRUCTOR: Base_0x7ffeefbff3e0
+         // out: CALL MOVE CONSTRUCTOR: Derived_wr_move_base_call_0x7ffeefbff3e0
+         std::ignore = d2;
+      }
+      
+      {
+         Derived_good_impl d1;
+         Derived_good_impl d2(std::move(d1));
+         // out: CALL MOVE CONSTRUCTOR: Base_0x7ffeefbff3d0
+         // out: CALL MOVE CONSTRUCTOR: Derived_good_impl_0x7ffeefbff3d0
+         std::ignore = d2;
+      }
+      
+   }
 }

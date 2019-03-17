@@ -29,46 +29,44 @@
 //utils
 #define STR_CLS_DETAILS(CLS) STR(CLS) << "_" << this
 
+#define CLS_METHOD_INFO(METHOD_NAME) \
+std::cout << "CALL " << METHOD_NAME << ": " << STR_CLS_DETAILS(CLS) << "\n";
+
+
 //constructor, destructor, ....
-#define CLS_CONSTR(CLS) \
-CLS() { std::cout << "CALL CONSTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
+#define CLS_CONSTR \
+CLS() { CLS_METHOD_INFO("CONSTRUCTOR"); }
 
-#define CLS_DESTR(CLS) \
-~CLS() { std::cout << "CALL DESTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
+#define CLS_DESTR \
+~CLS() { CLS_METHOD_INFO("DESTRUCTOR"); }
 
-#define CLS_COPY_CONSTR(CLS) \
-CLS(const CLS&) { \
-std::cout << "CALL COPY CONSTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
+#define CLS_COPY_CONSTR \
+CLS(const CLS&) { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
 
-#define CLS_MOVE_CONSTR(CLS) \
-CLS(CLS&&) { \
-std::cout << "CALL MOVE CONSTRUCTOR: " << STR_CLS_DETAILS(CLS) << "\n"; }
+#define CLS_MOVE_CONSTR \
+CLS(CLS&&) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
 
-#define CLS_COPY_ASSIG(CLS) \
-CLS& operator = (const CLS&) { \
-std::cout << "CALL COPY ASSIG OP : " << STR_CLS_DETAILS(CLS) << "\n"; \
-return *this; }
+#define CLS_COPY_ASSIG \
+CLS& operator = (const CLS&) { CLS_METHOD_INFO("COPY ASSIG OP"); return *this; }
 
-#define CLS_MOVE_ASSIG(CLS) \
-CLS& operator = (CLS&&) { \
-std::cout << "CALL MOVE ASSIG OP: " << STR_CLS_DETAILS(CLS) << "\n"; \
-return *this; }
+#define CLS_MOVE_ASSIG \
+CLS& operator = (CLS&&) { CLS_METHOD_INFO("MOVE ASSIG OP"); return *this; }
 
 //deleted members
-#define CLS_CONSTR_DEL(CLS)         CLS() = delete;
-#define CLS_DESTR_DEL(CLS)          ~CLS() = delete;
-#define CLS_COPY_CONSTR_DEL(CLS)    CLS(const CLS&)  = delete;
-#define CLS_MOVE_CONSTR_DEL(CLS)    CLS(CLS&&) = delete;
-#define CLS_COPY_ASSIG_DEL(CLS)  CLS& operator = (const CLS&) = delete;
-#define CLS_MOVE_ASSIG_DEL(CLS)  CLS& operator = (CLS&&) = delete;
+#define CLS_CONSTR_DEL        CLS() = delete;
+#define CLS_DESTR_DEL         ~CLS() = delete;
+#define CLS_COPY_CONSTR_DEL   CLS(const CLS&)  = delete;
+#define CLS_MOVE_CONSTR_DEL   CLS(CLS&&) = delete;
+#define CLS_COPY_ASSIG_DEL    CLS& operator = (const CLS&) = delete;
+#define CLS_MOVE_ASSIG_DEL    CLS& operator = (CLS&&) = delete;
 
 //default members
-#define CLS_CONSTR_DEF(CLS)         CLS() = default;
-#define CLS_DESTR_DEF(CLS)          ~CLS() = default;
-#define CLS_COPY_CONSTR_DEF(CLS)    CLS(const CLS&)  = default;
-#define CLS_MOVE_CONSTR_DEF(CLS)    CLS(CLS&&) = default;
-#define CLS_COPY_ASSIG_DEF(CLS)  CLS& operator = (const CLS&) = default;
-#define CLS_MOVE_ASSIG_DEF(CLS)  CLS& operator = (CLS&&) = default;
+#define CLS_CONSTR_DEF        CLS() = default;
+#define CLS_DESTR_DEF         ~CLS() = default;
+#define CLS_COPY_CONSTR_DEF   CLS(const CLS&)  = default;
+#define CLS_MOVE_CONSTR_DEF   CLS(CLS&&) = default;
+#define CLS_COPY_ASSIG_DEF    CLS& operator = (const CLS&) = default;
+#define CLS_MOVE_ASSIG_DEF    CLS& operator = (CLS&&) = default;
 
 
 #endif /* class_defines_h */
