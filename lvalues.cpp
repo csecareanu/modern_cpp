@@ -1,9 +1,9 @@
 #include <vector>
 #include "class_defines.h"
 #include <iostream>
+#include <memory>
 
 /*
-
  1. rvalues indicates objects eligible for move operations, while lvalues generally don't.
  
 
@@ -102,6 +102,18 @@ cout << "CALL " << __func__ << "(" << STR(TYPE) << "& wd)\n"; }
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
+   
+#undef CLS
+#define CLS Wd_constr_destr_copy_copyassg
+   class CLS
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+   };
     
 #undef CLS
 #define CLS Wd_constr_destr_del_move_moveassg
@@ -109,9 +121,11 @@ cout << "CALL " << __func__ << "(" << STR(TYPE) << "& wd)\n"; }
    {
    public:
       // there is no default copy constr because there exists deleted move constructor
-      // and move assignment operator
+      // and deleted move assignment operator
       CLS_CONSTR;
       CLS_DESTR;
+      
+      // DEL
       CLS_MOVE_CONSTR_DEL;
       CLS_MOVE_ASSIG_DEL;
    };
@@ -128,6 +142,7 @@ cout << "CALL " << __func__ << "(" << STR(TYPE) << "& wd)\n"; }
       // and move assignment operator
       CLS_CONSTR;
       CLS_DESTR;
+      
       CLS_MOVE_CONSTR;
       CLS_MOVE_ASSIG;
    };
@@ -481,6 +496,118 @@ namespace lvalues_test_class_4
          // out: CALL MOVE CONSTRUCTOR: Base_0x7ffeefbff3d0
          // out: CALL MOVE CONSTRUCTOR: Derived_good_impl_0x7ffeefbff3d0
          std::ignore = d2;
+      }
+      
+   }
+}
+
+namespace lvalues_perfect_forwarding
+{
+   using namespace class_defines;
+   using namespace std;
+   
+   template<typename T>
+   T foo(T arg)
+   {
+      return T(arg);
+   }
+   
+   template<typename T, typename Arg>
+   shared_ptr<T> factory_old_ver1(Arg& arg)
+   {
+      return shared_ptr<T>(new T(arg));
+   }
+   
+   template<typename T, typename Arg>
+   shared_ptr<T> factory_old_ver2(Arg& arg)
+   {
+      return shared_ptr<T>(new T(arg));
+   }
+   
+   /* overloaded in order to allow this calls:
+    1. factory_old_ver2<X>(32);
+    2. factory_old_ver2<X>(X(3)); */
+   template<typename T, typename Arg>
+   shared_ptr<T> factory_old_ver2(Arg const& arg)
+   {
+      return shared_ptr<T>(new T(arg));
+   }
+   
+ // Nu are rost sa implementez factory(Arg& arg) pt ca factory(Arg&& arg)
+ //  cuprinde si cazul asta
+/*
+ template<typename T, typename Arg>
+   shared_ptr<T> factory(Arg& arg)
+   {
+      return shared_ptr<T>(new T(arg));
+   }
+ */
+   
+   template<typename T, typename Arg>
+   shared_ptr<T> factory(Arg&& arg)
+   {
+      return shared_ptr<T>(new T(std::move(arg)));
+   }
+   
+   class X
+   {
+   public:
+      X(int val) : m_val(val) {}
+      
+   private:
+      int m_val;
+   };
+   
+   
+   void run_test()
+   {
+      {
+         // compile error:
+         // Candidate function ... not viable: expects an l-value for 1st argument
+         /*
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o =
+            factory_old_ver1<Wd_constr_destr_copy_copyassg_move_moveassg>
+         (foo(Wd_constr_destr_copy_copyassg_move_moveassg()));
+          */
+      }
+      {
+         // todo: add comments
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o = factory_old_ver2<Wd_constr_destr_copy_copyassg_move_moveassg>
+         (foo(Wd_constr_destr_copy_copyassg_move_moveassg()));
+         
+      }
+      {
+         Wd_constr_destr_copy_copyassg_move_moveassg o1;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff458
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o2 =
+            factory<Wd_constr_destr_copy_copyassg_move_moveassg>(o1);
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x102801b70
+         std::ignore = o2;
+      }
+      {
+         Wd_constr_destr_copy_copyassg_move_moveassg o1;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff458
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o2 =
+         factory<Wd_constr_destr_copy_copyassg_move_moveassg>(std::move(o1));
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x102801b70
+         std::ignore = o2;
+      }
+      
+      {
+         // Will not compile with factory_old_ver1 because of the missing
+         // overloaded version factory_old_ver1(Arg const& arg)
+         /* compile error: No matching function for call to 'factory_old'
+          Candidate function [with T = lvalues_perfect_forwarding::X, Arg = int]
+          not viable: expects an l-value for 1st argument */
+         shared_ptr<X> o1 = factory_old_ver2<X>(32);
+         std::ignore = o1;
+         
+         // Will not compile with factory_old_ver1 because of the missing
+         // overloaded version factory_old_ver1(Arg const& arg)
+         /* 1. Candidate function [with T = ...] not viable:
+          expects an l-value for 1st argument */
+         shared_ptr<X> o2 = factory_old_ver2<X>(X(3));
+         std::ignore = o2;
       }
       
    }

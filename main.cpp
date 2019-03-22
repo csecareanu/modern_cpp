@@ -13,7 +13,10 @@ int main(int argc, const char * argv[]) {
    
    //lvalues_test_class_3::run_test();
    
-   lvalues_test_class_4::run_test();
+   //lvalues_test_class_4::run_test();
+   
+   lvalues_perfect_forwarding::run_test();
+
 
    return 0;
 }
