@@ -34,7 +34,12 @@ namespace lvalues_test_class_4
    void run_test();
 }
 
-namespace lvalues_perfect_forwarding
+namespace lvalues_perfect_forwarding_the_problem
+{
+   void run_test();
+}
+
+namespace lvalues_perfect_forwarding_the_solution
 {
    void run_test();
 }

@@ -131,7 +131,24 @@ cout << "CALL " << __func__ << "(" << STR(TYPE) << "& wd)\n"; }
    };
    TEST_RVAL(CLS);
    TEST_LVAL(CLS);
-    
+   
+#undef CLS
+#define CLS Wd_constr_destr_copy_copyassg_del_move_moveassg
+   class CLS
+   {
+   public:
+      CLS_CONSTR;
+      CLS_DESTR;
+      
+      CLS_COPY_CONSTR;
+      CLS_COPY_ASSIG;
+      
+      // DEL
+      CLS_MOVE_CONSTR_DEL;
+      CLS_MOVE_ASSIG_DEL;
+   };
+   TEST_RVAL(CLS);
+   TEST_LVAL(CLS);
     
 #undef CLS
 #define CLS Wd_constr_destr_move_moveassg
@@ -501,7 +518,7 @@ namespace lvalues_test_class_4
    }
 }
 
-namespace lvalues_perfect_forwarding
+namespace lvalues_perfect_forwarding_the_problem
 {
    using namespace class_defines;
    using namespace std;
@@ -571,26 +588,47 @@ namespace lvalues_perfect_forwarding
           */
       }
       {
-         // todo: add comments
-         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o = factory_old_ver2<Wd_constr_destr_copy_copyassg_move_moveassg>
+         // pt foo(Wd_constr_destr_copy_copyassg_move_moveassg())
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff408
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff410
+         
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x102007310
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o =
+            factory_old_ver2<Wd_constr_destr_copy_copyassg_move_moveassg>
          (foo(Wd_constr_destr_copy_copyassg_move_moveassg()));
          
+         std::ignore = o;
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff410
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff408
+      }
+      // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff408
+      {
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff3c8
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x10200eb10
+         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o =
+         factory_old_ver2<Wd_constr_destr_copy_copyassg_move_moveassg>
+         (Wd_constr_destr_copy_copyassg_move_moveassg());
+         
+         std::ignore = o;
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff3c8
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x10200eb10
       }
       {
-         Wd_constr_destr_copy_copyassg_move_moveassg o1;
-         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff458
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff3d8
+         // out: CALL MOVE CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x100722890
          shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o2 =
-            factory<Wd_constr_destr_copy_copyassg_move_moveassg>(o1);
-         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x102801b70
+            factory<Wd_constr_destr_copy_copyassg_move_moveassg>(Wd_constr_destr_copy_copyassg_move_moveassg());
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff3d8
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_00x100722890
          std::ignore = o2;
       }
       {
-         Wd_constr_destr_copy_copyassg_move_moveassg o1;
-         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x7ffeefbff458
-         shared_ptr<Wd_constr_destr_copy_copyassg_move_moveassg> o2 =
-         factory<Wd_constr_destr_copy_copyassg_move_moveassg>(std::move(o1));
-         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_move_moveassg_0x102801b70
-         std::ignore = o2;
+         // out: CALL CONSTRUCTOR: Wd_constr_destr_copy_copyassg_0x7ffeefbff3c8
+         // out: CALL COPY CONSTRUCTOR: Wd_constr_destr_copy_copyassg_0x100701180
+         shared_ptr<Wd_constr_destr_copy_copyassg> o =
+         factory<Wd_constr_destr_copy_copyassg>(Wd_constr_destr_copy_copyassg());
+         // out: CALL DESTRUCTOR: Wd_constr_destr_copy_copyassg_0x7ffeefbff3c8
+         std::ignore = o;
       }
       
       {
@@ -609,6 +647,14 @@ namespace lvalues_perfect_forwarding
          shared_ptr<X> o2 = factory_old_ver2<X>(X(3));
          std::ignore = o2;
       }
+      
+   }
+}
+
+namespace lvalues_perfect_forwarding_the_solution
+{
+   void run_test()
+   {
       
    }
 }
