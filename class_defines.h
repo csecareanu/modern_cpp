@@ -35,22 +35,22 @@ std::cout << "CALL " << METHOD_NAME << ": " << STR_CLS_DETAILS(CLS) << "\n";
 
 //constructor, destructor, ....
 #define CLS_CONSTR \
-CLS() { CLS_METHOD_INFO("CONSTRUCTOR"); }
+CLS() noexcept { CLS_METHOD_INFO("CONSTRUCTOR"); }
 
 #define CLS_DESTR \
-~CLS() { CLS_METHOD_INFO("DESTRUCTOR"); }
+~CLS() noexcept { CLS_METHOD_INFO("DESTRUCTOR"); }
 
 #define CLS_COPY_CONSTR \
-CLS(const CLS&) { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
+CLS(const CLS&) noexcept { CLS_METHOD_INFO("COPY CONSTRUCTOR"); }
 
 #define CLS_MOVE_CONSTR \
-CLS(CLS&&) { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
+CLS(CLS&&) noexcept { CLS_METHOD_INFO("MOVE CONSTRUCTOR"); }
 
 #define CLS_COPY_ASSIG \
-CLS& operator = (const CLS&) { CLS_METHOD_INFO("COPY ASSIG OP"); return *this; }
+CLS& operator = (const CLS&) noexcept { CLS_METHOD_INFO("COPY ASSIG OP"); return *this; }
 
 #define CLS_MOVE_ASSIG \
-CLS& operator = (CLS&&) { CLS_METHOD_INFO("MOVE ASSIG OP"); return *this; }
+CLS& operator = (CLS&&) noexcept { CLS_METHOD_INFO("MOVE ASSIG OP"); return *this; }
 
 //deleted members
 #define CLS_CONSTR_DEL        CLS() = delete;

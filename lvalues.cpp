@@ -4,6 +4,8 @@
 #include <memory>
 
 /*
+ Links: http://thbecker.net/articles/rvalue_references/section_09.html
+ 
  1. rvalues indicates objects eligible for move operations, while lvalues generally don't.
  
 
@@ -569,7 +571,7 @@ namespace lvalues_perfect_forwarding_the_problem
    class X
    {
    public:
-      X(int val) : m_val(val) {}
+      X(int val) noexcept : m_val(val) {}
       
    private:
       int m_val;
@@ -653,8 +655,31 @@ namespace lvalues_perfect_forwarding_the_problem
 
 namespace lvalues_perfect_forwarding_the_solution
 {
+   /*
+    C++11 introduces the following reference collapsing rules
+    A& & becomes A&
+    A& && becomes A&
+    A&& & becomes A&
+    A&& && becomes A&&
+    
+    template<typename T>
+    void foo(T&&);
+    1.When foo is called on an lvalue of type A, then T resolves to A& and hence,
+      by the reference collapsing rules above, the argument type effectively
+      becomes A&.
+    2.When foo is called on an rvalue of type A, then T resolves to A,
+      and hence the argument type becomes A&&.
+    */
+   
+   // Here's what the solution looks like:
+   template<typename T, typename Arg>
+   std::shared_ptr<T> factory(Arg&& arg)
+   {
+      return std::shared_ptr<T>(new T(std::forward<Arg>(arg)));
+   }
+   
    void run_test()
    {
-      
+
    }
 }
